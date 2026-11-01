@@ -1,0 +1,10 @@
+.env
+output/
+__pycache__/
+*.pyc
+ig_session.json
+used_topics.json
+upload_log.json
+*.jpg
+*.png
+*.mp4
