@@ -23,7 +23,6 @@ app = Flask(__name__)
 
 _bot = None
 _log_file = os.path.join(os.path.dirname(__file__), "upload_log.json")
-_used_file = os.path.join(os.path.dirname(__file__), "used_topics.json")
 
 
 def get_bot():
@@ -101,15 +100,14 @@ def log():
     return jsonify(_load_log()[-10:]), 200
 
 
-# ── 진입점 ───────────────────────────────────────────────
+# ── 앱 시작 시 초기화 (gunicorn 포함) ────────────────────
 
-if __name__ == "__main__":
-    bot = get_bot()
-
+def _startup():
+    """gunicorn/직접 실행 모두에서 호출되는 초기화"""
     # Webhook 등록
     if RENDER_EXTERNAL_URL:
         webhook_url = f"{RENDER_EXTERNAL_URL.rstrip('/')}/webhook"
-        bot.set_webhook(webhook_url)
+        get_bot().set_webhook(webhook_url)
         logger.info(f"Telegram webhook 등록: {webhook_url}")
     else:
         logger.warning("RENDER_EXTERNAL_URL 없음 — webhook 미등록 (로컬 테스트 모드)")
@@ -126,4 +124,10 @@ if __name__ == "__main__":
     scheduler.start()
     logger.info("스케줄러 시작 — 매일 KST 09:00 실행")
 
+
+# gunicorn은 모듈을 import할 때 이 코드가 실행됨
+_startup()
+
+
+if __name__ == "__main__":
     app.run(host="0.0.0.0", port=PORT)
